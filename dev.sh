@@ -45,7 +45,6 @@ EOF
 # =========================
 # Utilities
 # =========================
-
 remove_build() {
     if [ -d "build" ]; then
         echo "[INFO] remove build directory..."
@@ -116,15 +115,14 @@ generate_coverage() {
         --html --html-details \
         -o "$BUILD_DIR/coverage/index.html"
 
-    echo "[INFO] Coverage report:"
-    echo "      $BUILD_DIR/coverage/index.html"
+    echo "[INFO] Coverage generated at $BUILD_DIR/coverage/index.html"
 }
 
 # =========================
 # Main logic
 # =========================
-
 if [ $# -lt 1 ]; then
+    echo "[ERROR] No command provided"
     usage
 fi
 
@@ -178,7 +176,7 @@ case "$CMD" in
         parse_build_type debug
         remove_build
 
-        # 🔥 coverage build
+        # coverage build
         build ON
 
         run_tests
@@ -189,7 +187,12 @@ case "$CMD" in
         remove_build
         ;;
 
+    -h|--help)
+        usage
+        ;;
+
     *)
+        echo "[ERROR] Invalid command: $CMD"
         usage
         ;;
 esac
