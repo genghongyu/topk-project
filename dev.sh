@@ -99,7 +99,18 @@ run_app() {
 
 run_tests() {
     echo "[INFO] Running unit tests..."
-    ctest --test-dir "$BUILD_DIR" --output-on-failure -j"$(nproc)"
+
+    if [ $# -gt 0 ]; then
+        echo "[INFO] Filter: $*"
+        ctest --test-dir "$BUILD_DIR" \
+              -R "$1" \
+              --output-on-failure \
+              -j"$(nproc)"
+    else
+        ctest --test-dir "$BUILD_DIR" \
+              --output-on-failure \
+              -j"$(nproc)"
+    fi
 }
 
 generate_coverage() {
@@ -169,7 +180,7 @@ case "$CMD" in
     test)
         parse_build_type debug
         build OFF
-        run_tests
+        run_tests "$@"
         ;;
 
     report)

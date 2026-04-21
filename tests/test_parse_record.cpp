@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 #include "parse_record.h"
 
-// -------- 正常输入 --------
+// ------------------------------
+// Normal case: normal input line
+// ------------------------------
 TEST(ParseRecordTest, ValidLine) {
     std::string line = "1 100";
     Record r;
@@ -13,7 +15,9 @@ TEST(ParseRecordTest, ValidLine) {
     EXPECT_EQ(r.value, 100);
 }
 
-// -------- 多空格 --------
+// ------------------------------
+// Normal case: extra spaces in input
+// ------------------------------
 TEST(ParseRecordTest, ExtraSpaces) {
     std::string line = "   2    200   ";
     Record r;
@@ -25,7 +29,9 @@ TEST(ParseRecordTest, ExtraSpaces) {
     EXPECT_EQ(r.value, 200);
 }
 
-// -------- 非法字符串 --------
+// ------------------------------
+// Error case: non-numeric input
+// ------------------------------
 TEST(ParseRecordTest, InvalidLine) {
     std::string line = "abc def";
     Record r;
@@ -35,7 +41,9 @@ TEST(ParseRecordTest, InvalidLine) {
     EXPECT_FALSE(ok);
 }
 
-// -------- 部分非法 --------
+// ------------------------------
+// Error case: partially invalid input
+// ------------------------------
 TEST(ParseRecordTest, PartialInvalid) {
     std::string line = "1 abc";
     Record r;
@@ -45,7 +53,9 @@ TEST(ParseRecordTest, PartialInvalid) {
     EXPECT_FALSE(ok);
 }
 
-// -------- 空字符串 --------
+// ------------------------------
+// Edge case: empty input line
+// ------------------------------
 TEST(ParseRecordTest, EmptyLine) {
     std::string line = "";
     Record r;
@@ -55,7 +65,9 @@ TEST(ParseRecordTest, EmptyLine) {
     EXPECT_FALSE(ok);
 }
 
-// -------- 只有一个字段 --------
+// ------------------------------
+// Error case: missing second field
+// ------------------------------
 TEST(ParseRecordTest, MissingField) {
     std::string line = "1";
     Record r;
@@ -65,14 +77,15 @@ TEST(ParseRecordTest, MissingField) {
     EXPECT_FALSE(ok);
 }
 
-// -------- 多余字段（允许）--------
+// ------------------------------
+// Normal case: extra fields are ignored
+// ------------------------------
 TEST(ParseRecordTest, ExtraFields) {
     std::string line = "3 300 extra";
     Record r;
 
     bool ok = parse_line(line, r);
 
-    // 当前实现只读前两个字段 → 应该成功
     EXPECT_TRUE(ok);
     EXPECT_EQ(r.id, 3);
     EXPECT_EQ(r.value, 300);

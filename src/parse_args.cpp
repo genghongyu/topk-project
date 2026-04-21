@@ -1,29 +1,45 @@
 #include <string>
-#include <stdexcept>
+#include <iostream>
 #include "parse_args.h"
 
-AppConfig parse_args(int argc, char* argv[]) {
-    AppConfig config;
+int parse_args(int argc, char* argv[], AppConfig& config, std::ostream& err) {
 
+    // 1. check number of command-line arguments
     if (argc < 2) {
-        throw std::runtime_error("Usage: topk <X> [file_path]");
+        err << "Usage: topk <X> [file_path]\n";
+        return 1;
     }
 
+    // 2. extract arguments
     const char* top_k_str = argv[1];
     const char* file_path_str = (argc >= 3) ? argv[2] : nullptr;
 
+    // 3. parse and validate top_k
+    //    - must be a valid integer
+    //    - must be greater than 0
     try {
         config.top_k = std::stoi(top_k_str);
     } catch (const std::invalid_argument&) {
-        throw std::runtime_error("[parse_args] Invalid argument: top_k is not a number");
+        err << "invalid_argument\n";
+        return 1;
     } catch (const std::out_of_range&) {
-        throw std::runtime_error("[parse_args] Invalid argument: top_k out of range");
+        err << "out_of_range\n";
+        return 1;
     }
+    
+    // catch (const std::exception&) {
+    //     err << "[parse_args] top_k must be a valid integer\n";
+    //     return 1;
+    // }
 
     if (config.top_k <= 0) {
-        throw std::runtime_error("[parse_args] top_k must be > 0");
+        err << "[parse_args] top_k must be greater than 0\n";
+        return 1;
     }
 
+    // 4. set input mode
+    //    - file mode if file path is provided
+    //    - otherwise use stdin
     if (file_path_str) {
         config.file_path = file_path_str;
         config.mode = InputMode::File;
@@ -31,5 +47,5 @@ AppConfig parse_args(int argc, char* argv[]) {
         config.mode = InputMode::Stdin;
     }
 
-    return config;
+    return 0;
 }

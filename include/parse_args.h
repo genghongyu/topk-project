@@ -3,6 +3,6 @@
 
 #include "app_config.h"
 
-AppConfig parse_args(int argc, char* argv[]);
+int parse_args(int argc, char* argv[], AppConfig& config,  std::ostream& err);
 
 #endif // PARSE_ARGS_H
