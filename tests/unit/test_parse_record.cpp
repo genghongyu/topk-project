@@ -8,9 +8,9 @@ TEST(ParseRecordTest, ValidLine) {
     std::string line = "1 100";
     Record r;
 
-    bool ok = parse_line(line, r);
+    auto ret = parse_line(line, r);
 
-    EXPECT_TRUE(ok);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(r.id, 1);
     EXPECT_EQ(r.value, 100);
 }
@@ -22,9 +22,9 @@ TEST(ParseRecordTest, ExtraSpaces) {
     std::string line = "   2    200   ";
     Record r;
 
-    bool ok = parse_line(line, r);
+    auto ret = parse_line(line, r);
 
-    EXPECT_TRUE(ok);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(r.id, 2);
     EXPECT_EQ(r.value, 200);
 }
@@ -36,9 +36,9 @@ TEST(ParseRecordTest, InvalidLine) {
     std::string line = "abc def";
     Record r;
 
-    bool ok = parse_line(line, r);
+    auto ret = parse_line(line, r);
 
-    EXPECT_FALSE(ok);
+    EXPECT_FALSE(ret);
 }
 
 // ------------------------------
@@ -48,9 +48,9 @@ TEST(ParseRecordTest, PartialInvalid) {
     std::string line = "1 abc";
     Record r;
 
-    bool ok = parse_line(line, r);
+    auto ret = parse_line(line, r);
 
-    EXPECT_FALSE(ok);
+    EXPECT_FALSE(ret);
 }
 
 // ------------------------------
@@ -60,9 +60,9 @@ TEST(ParseRecordTest, EmptyLine) {
     std::string line = "";
     Record r;
 
-    bool ok = parse_line(line, r);
+    auto ret = parse_line(line, r);
 
-    EXPECT_FALSE(ok);
+    EXPECT_FALSE(ret);
 }
 
 // ------------------------------
@@ -72,9 +72,9 @@ TEST(ParseRecordTest, MissingField) {
     std::string line = "1";
     Record r;
 
-    bool ok = parse_line(line, r);
+    auto ret = parse_line(line, r);
 
-    EXPECT_FALSE(ok);
+    EXPECT_FALSE(ret);
 }
 
 // ------------------------------
@@ -84,9 +84,9 @@ TEST(ParseRecordTest, ExtraFields) {
     std::string line = "3 300 extra";
     Record r;
 
-    bool ok = parse_line(line, r);
+    auto ret = parse_line(line, r);
 
-    EXPECT_TRUE(ok);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(r.id, 3);
     EXPECT_EQ(r.value, 300);
 }

@@ -26,11 +26,6 @@ int parse_args(int argc, char* argv[], AppConfig& config, std::ostream& err) {
         err << "out_of_range\n";
         return 1;
     }
-    
-    // catch (const std::exception&) {
-    //     err << "[parse_args] top_k must be a valid integer\n";
-    //     return 1;
-    // }
 
     if (config.top_k <= 0) {
         err << "[parse_args] top_k must be greater than 0\n";

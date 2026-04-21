@@ -15,16 +15,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # =========================
-# Coverage flags
-# =========================
-if(ENABLE_COVERAGE)
-    message(STATUS "Coverage enabled")
-
-    add_compile_options(--coverage -O0 -g)
-    add_link_options(--coverage)
-endif()
-
-# =========================
 # Core library (business logic)
 # =========================
 set(LIB_NAME topk_lib)
@@ -42,6 +32,16 @@ target_include_directories(${LIB_NAME}
 
 target_compile_options(${LIB_NAME}
     PRIVATE -Wall -Wextra -Wpedantic)
+
+# =========================
+# Coverage flags
+# =========================
+if(ENABLE_COVERAGE)
+    message(STATUS "Coverage enabled")
+
+    target_compile_options(${LIB_NAME} PRIVATE --coverage -O0 -g)
+    target_link_libraries(${LIB_NAME} PRIVATE --coverage)
+endif()
 
 # =========================
 # Main application

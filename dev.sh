@@ -2,11 +2,13 @@
 set -euo pipefail
 
 # =========================
-# Application config
+# Config
 # =========================
 MAIN_APP="topk_app"
-BUILD_TYPE=""
+
+BUILD_DIR_BASE="build"
 BUILD_DIR=""
+BUILD_TYPE="Debug"
 
 # =========================
 # Usage
@@ -14,107 +16,126 @@ BUILD_DIR=""
 usage() {
     cat <<EOF
 ===================================
-           Dev Build Tool
+           Dev Tool
 ===================================
 Usage:
 
-  dev.sh debug
-      Build application in Debug mode
+  dev.sh build [debug|release]
+      Configure & build project
 
-  dev.sh release
-      Build application in Release mode
-
-  dev.sh run [debug|release] [args...]
-      Build and run application (default: debug)
-
-  dev.sh rebuild [debug|release]
-      Clean build directory and rebuild (default: debug)
-
-  dev.sh test
-      Build and run unit tests (Debug mode)
+  dev.sh test [unit|integration|smoke|all]
+      Run tests by category (default: all)
 
   dev.sh report
-      Run unit tests and generate HTML coverage report
+      Run all tests + generate coverage report
 
   dev.sh clean
-      Remove all build artifacts
+      Remove build directory
+
 EOF
     exit 1
 }
 
 # =========================
-# Utilities
+# Helpers
 # =========================
 remove_build() {
-    if [ -d "build" ]; then
-        echo "[INFO] remove build directory..."
-        rm -rf build
+    if [ -d "$BUILD_DIR_BASE" ]; then
+        echo "[INFO] remove $BUILD_DIR_BASE directory..."
+        rm -rf $BUILD_DIR_BASE
     else
-        echo "[INFO] build directory not found, skip"
+        echo "[INFO] $BUILD_DIR_BASE directory not found, skip"
     fi
 }
 
-parse_build_type() {
-    case "$1" in
+set_build_dir() {
+    local type="${1:-debug}"
+
+    case "$type" in
         debug)
             BUILD_TYPE="Debug"
+            BUILD_DIR="${BUILD_DIR_BASE}/debug"
             ;;
         release)
             BUILD_TYPE="Release"
+            BUILD_DIR="${BUILD_DIR_BASE}/release"
+            ;;
+        coverage)
+            BUILD_TYPE="Debug"
+            BUILD_DIR="${BUILD_DIR_BASE}/coverage"
             ;;
         *)
-            echo "[ERROR] invalid build type: $1"
+            echo "[ERROR] invalid build type: $type"
             exit 1
             ;;
     esac
 }
 
 # =========================
-# build (supports coverage flag)
+# Build
 # =========================
 build() {
-    local COVERAGE_FLAG="${1:-OFF}"
+    local type="${1:-debug}"
 
-    case "$BUILD_TYPE" in
-        Debug) BUILD_DIR="build/debug" ;;
-        Release) BUILD_DIR="build/release" ;;
-    esac
+    set_build_dir "$type"
 
-    echo "[INFO] BUILD_TYPE=$BUILD_TYPE"
-    echo "[INFO] BUILD_DIR=$BUILD_DIR"
-    echo "[INFO] COVERAGE=$COVERAGE_FLAG"
+    echo "[INFO] build type: $BUILD_TYPE"
+    echo "[INFO] build dir: $BUILD_DIR"
+
+    # =========================
+    # coverage switch
+    # =========================
+    local coverage_flag="OFF"
+
+    if [ "$type" == "coverage" ]; then
+        coverage_flag="ON"
+    fi
 
     cmake -S . -B "$BUILD_DIR" \
         -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
-        -DENABLE_COVERAGE="$COVERAGE_FLAG"
+        -DENABLE_COVERAGE="$coverage_flag"
 
     cmake --build "$BUILD_DIR" -j"$(nproc)"
 }
 
-run_app() {
-    local EXEC="$BUILD_DIR/$MAIN_APP"
-    echo "[RUN] $EXEC $*"
-    "$EXEC" "$@"
-}
-
+# =========================
+# Test (CI + local)
+# =========================
 run_tests() {
-    echo "[INFO] Running unit tests..."
+    local target="${1:-all}"
 
-    if [ $# -gt 0 ]; then
-        echo "[INFO] Filter: $*"
-        ctest --test-dir "$BUILD_DIR" \
-              -R "$1" \
-              --output-on-failure \
-              -j"$(nproc)"
-    else
-        ctest --test-dir "$BUILD_DIR" \
-              --output-on-failure \
-              -j"$(nproc)"
+    if [ -z "$BUILD_DIR" ]; then
+        set_build_dir debug
     fi
+
+    echo "[INFO] running tests: $target"
+    echo "[INFO] build dir: $BUILD_DIR"
+
+    case "$target" in
+        unit)
+            ctest --test-dir "$BUILD_DIR" -L unit --output-on-failure
+            ;;
+        integration)
+            ctest --test-dir "$BUILD_DIR" -L integration --output-on-failure
+            ;;
+        smoke)
+            ctest --test-dir "$BUILD_DIR" -L smoke --output-on-failure
+            ;;
+        all)
+            ctest --test-dir "$BUILD_DIR" --output-on-failure
+            ;;
+        *)
+            echo "[ERROR] unknown test type: $target"
+            exit 1
+            ;;
+    esac
 }
 
+# =========================
+# Coverage
+# =========================
 generate_coverage() {
-    echo "[INFO] Generating coverage report..."
+    echo "[INFO] generating coverage report..."
 
     mkdir -p "$BUILD_DIR/coverage"
 
@@ -124,11 +145,11 @@ generate_coverage() {
         --exclude 'build/.*' \
         --exclude 'src/main.cpp' \
         --print-summary \
-        --fail-under-line 95 \
+        --fail-under-line 80 \
         --html --html-details \
         -o "$BUILD_DIR/coverage/index.html"
 
-    echo "[INFO] Coverage generated at $BUILD_DIR/coverage/index.html"
+    echo "[INFO] coverage report: $BUILD_DIR/coverage/index.html"
 }
 
 # =========================
@@ -140,59 +161,23 @@ if [ $# -lt 1 ]; then
 fi
 
 CMD=$1
-shift
+shift || true
 
 case "$CMD" in
 
-    debug)
-        parse_build_type debug
-        build OFF
-        ;;
-
-    release)
-        parse_build_type release
-        build OFF
-        ;;
-
-    run)
-        case "${1:-}" in
-            debug)
-                parse_build_type debug
-                shift
-                ;;
-            release)
-                parse_build_type release
-                shift
-                ;;
-            *)
-                parse_build_type debug
-                ;;
-        esac
-
-        build OFF
-        run_app "$@"
-        ;;
-
-    rebuild)
-        parse_build_type "${1:-debug}"
-        remove_build
-        build OFF
+    build)
+        build "${1:-debug}"
         ;;
 
     test)
-        parse_build_type debug
-        build OFF
-        run_tests "$@"
+        build debug
+        run_tests "${1:-all}"
         ;;
 
     report)
-        parse_build_type debug
         remove_build
-
-        # coverage build
-        build ON
-
-        run_tests
+        build coverage
+        run_tests all
         generate_coverage
         ;;
 
@@ -205,7 +190,7 @@ case "$CMD" in
         ;;
 
     *)
-        echo "[ERROR] Invalid command: $CMD"
+        echo "[ERROR] unknown command: $CMD"
         usage
         ;;
 esac

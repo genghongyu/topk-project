@@ -12,7 +12,7 @@ TEST(ParseArgsTest, NormalStdin) {
     AppConfig config;
     std::ostringstream err;
 
-    int ret = parse_args(argc, const_cast<char**>(argv), config, err);
+    auto ret = parse_args(argc, const_cast<char**>(argv), config, err);
 
     EXPECT_EQ(ret, 0);
     EXPECT_EQ(config.top_k, 3);
@@ -30,7 +30,7 @@ TEST(ParseArgsTest, NormalFileInput) {
     AppConfig config;
     std::ostringstream err;
 
-    int ret = parse_args(argc, const_cast<char**>(argv), config, err);
+    auto ret = parse_args(argc, const_cast<char**>(argv), config, err);
 
     EXPECT_EQ(ret, 0);
     EXPECT_EQ(config.top_k, 5);
@@ -49,14 +49,14 @@ TEST(ParseArgsTest, MissingArguments) {
     AppConfig config;
     std::ostringstream err;
 
-    int ret = parse_args(argc, const_cast<char**>(argv), config, err);
+    auto ret = parse_args(argc, const_cast<char**>(argv), config, err);
 
     EXPECT_EQ(ret, 1);
     EXPECT_FALSE(err.str().empty());
 }
 
 // ------------------------------
-// Error case: not integer top_k
+// Error case: invalid number top_k
 // ------------------------------
 TEST(ParseArgsTest, InvalidNumber) {
     const char* argv[] = {"app", "abc"};
@@ -65,7 +65,7 @@ TEST(ParseArgsTest, InvalidNumber) {
     AppConfig config;
     std::ostringstream err;
 
-    int ret = parse_args(argc, const_cast<char**>(argv), config, err);
+    auto ret = parse_args(argc, const_cast<char**>(argv), config, err);
 
     EXPECT_EQ(ret, 1);
     EXPECT_FALSE(err.str().empty());
@@ -75,13 +75,13 @@ TEST(ParseArgsTest, InvalidNumber) {
 // Error case: integer overflow top_k
 // ------------------------------
 TEST(ParseArgsTest, OutOfRange) {
-    const char* argv[] = {"app", "92233720368547758099999"}; // guaranteed overflow
+    const char* argv[] = {"app", "92233720368547758099999"};
     int argc = 2;
 
     AppConfig config;
     std::ostringstream err;
 
-    int ret = parse_args(argc, const_cast<char**>(argv), config, err);
+    auto ret = parse_args(argc, const_cast<char**>(argv), config, err);
 
     EXPECT_EQ(ret, 1);
     EXPECT_FALSE(err.str().empty());
@@ -97,7 +97,7 @@ TEST(ParseArgsTest, NegativeTopK) {
     AppConfig config;
     std::ostringstream err;
 
-    int ret = parse_args(argc, const_cast<char**>(argv), config, err);
+    auto ret = parse_args(argc, const_cast<char**>(argv), config, err);
 
     EXPECT_EQ(ret, 1);
     EXPECT_FALSE(err.str().empty());
@@ -113,7 +113,7 @@ TEST(ParseArgsTest, ZeroTopK) {
     AppConfig config;
     std::ostringstream err;
 
-    int ret = parse_args(argc, const_cast<char**>(argv), config, err);
+    auto ret = parse_args(argc, const_cast<char**>(argv), config, err);
 
     EXPECT_EQ(ret, 1);
     EXPECT_FALSE(err.str().empty());

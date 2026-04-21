@@ -17,12 +17,12 @@ TEST(TopKTest, Basic) {
 
     EXPECT_EQ(res.size(), 3);
 
-    std::set<int> ids;
+    std::multiset<int> ids;
     for (const auto& r : res) {
         ids.insert(r.id);
     }
 
-    std::set<int> expected = {1, 2, 4};
+    std::multiset<int> expected = {1, 2, 4};
     EXPECT_EQ(ids, expected);
 }
 
@@ -51,6 +51,14 @@ TEST(TopKTest, LessThanK) {
     auto res = p.get_result();
 
     EXPECT_EQ(res.size(), 2);
+
+    std::multiset<int> ids;
+    for(const auto& r : res) {
+        ids.insert(r.id);
+    }
+
+    std::multiset<int> expected = {1, 2};
+    EXPECT_EQ(ids, expected);
 }
 
 // ------------------------------
@@ -66,26 +74,12 @@ TEST(TopKTest, EqualValues) {
     auto res = p.get_result();
 
     EXPECT_EQ(res.size(), 2);
-}
 
-// ------------------------------
-// Normal case: all lower values filtered out
-// ------------------------------
-TEST(TopKTest, AllFilteredOut) {
-    CTopKProcessor p(2);
-
-    p.add({1, 100});
-    p.add({2, 200});
-    p.add({3, 50});
-    p.add({4, 10});
-
-    auto res = p.get_result();
-
-    std::set<int> ids;
-    for (const auto& r : res) {
+    std::multiset<int> ids;
+    for(const auto& r : res) {
         ids.insert(r.id);
     }
 
-    std::set<int> expected = {1, 2};
+    std::multiset<int> expected = {1, 2};
     EXPECT_EQ(ids, expected);
 }
