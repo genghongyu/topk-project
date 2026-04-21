@@ -1,0 +1,55 @@
+name: TOPK_PROJECT CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-test-coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      # checkout source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # install dependencies
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake \
+            g++ \
+            gcovr \
+            libgtest-dev \
+
+            # compile gtest
+            cd /usr/src/gtest
+            sudo cmake .
+            sudo make
+            sudo cp lib/*.a /usr/lib
+      
+      # prepare dev script
+      - name: Make dev.sh executable
+        run: chmod +x dev.sh
+
+      # build(debug)
+      - name: Build project
+        run: |
+          ./dev.sh build debug
+
+      # run unit/integration/smoke tests
+      - name: Run tests(unit integration smoke)
+        run: |
+          ./dev.sh test all
+
+      # generate coverage report
+      - name: Coverage report
+        run: |
+          ./dev.sh report
+
+      # upload coverage artifact
+      - name: update coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: build/**/coverage
