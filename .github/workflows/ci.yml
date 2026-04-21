@@ -1,6 +1,7 @@
 name: TOPK_PROJECT CI
 
 on:
+  pull request:
   workflow_dispatch:
 
 jobs:
@@ -20,13 +21,13 @@ jobs:
             cmake \
             g++ \
             gcovr \
-            libgtest-dev \
+            libgtest-dev
 
             # compile gtest
             cd /usr/src/gtest
             sudo cmake .
             sudo make
-            sudo cp lib/*.a /usr/lib
+            sudo cp lib/*.a /usr/lib/
       
       # prepare dev script
       - name: Make dev.sh executable
