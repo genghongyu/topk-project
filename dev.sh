@@ -124,7 +124,7 @@ generate_coverage() {
         --exclude 'build/.*' \
         --exclude 'src/main.cpp' \
         --print-summary \
-        --fail-under-line 80 \
+        --fail-under-line 95 \
         --html --html-details \
         -o "$BUILD_DIR/coverage/index.html"
 
